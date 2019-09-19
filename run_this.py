@@ -42,7 +42,6 @@ cmd = 'time ffmpeg -i {} -q:v 2 -r 25 {}/%08d.jpg'.\
 os.system(cmd)
 
 
-
 # render the frames
 rendered_frames_path = os.path.join(cfg.cache_data_path, 'rendered_frames')
 empty_dir(rendered_frames_path)
@@ -51,6 +50,7 @@ x = float(sum([_[0] for _ in cfg.valid_region])) / len(cfg.valid_region)
 y = float(sum([_[1] for _ in cfg.valid_region])) / len(cfg.valid_region)
 ref_point = (x,y)
 
+# judge whether (xc,yc)->(xr,yr) is crossed with (x1,y1)->(x2,y2)
 def is_cross((xc,yc), (xr,yr), (x1,y1),(x2,y2)):
     if x1 == x2:
         if (xc-x1) * (xr-x1) < 0:
@@ -74,6 +74,7 @@ def cv2ImgAddText(img, text, (left, top), font_path='', textColor=(0, 255, 0), t
         font_path, textSize)
     draw.text((left, top), text, textColor, font=fontText)
     return cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
+
 
 orig_frames_files = glob.glob(orig_frames_path + '/*.jpg')
 for im_f in orig_frames_files:
@@ -114,8 +115,8 @@ for im_f in orig_frames_files:
 
 
 # synthesize the video from frames
-if os.path.isfile(cfg.rendered_video_path):
-    os.system('rm %s' %cfg.rendered_video_path)
+save_dir = os.path.dirname(cfg.rendered_video_path)
+empty_dir(save_dir)
 
 cmd = 'ffmpeg -f image2 -i {}/%08d.jpg -vcodec libx264 -r 25 {}'.\
         format(rendered_frames_path, cfg.rendered_video_path)
